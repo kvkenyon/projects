@@ -1,5 +1,6 @@
 import Tkinter
 import vtk
+from vtk
 from vtk.util.misc import vtkGetDataRoot
 VTK_DATA_ROOT = vtkGetDataRoot()
 
