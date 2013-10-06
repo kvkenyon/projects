@@ -1,3 +1,4 @@
+import Tkinter
 import vtk
 from vtk.util.misc import vtkGetDataRoot
 VTK_DATA_ROOT = vtkGetDataRoot()
@@ -9,7 +10,7 @@ reader.ReadAllVectorsOn()
 reader.ReadAllScalarsOn()
 reader.Update()
 
-isoValue = 100;
+isoValue = 120;
 
 marchingCube = vtk.vtkMarchingCubes()
 marchingCube.SetInputConnection(reader.GetOutputPort())
@@ -23,8 +24,8 @@ mapper.Update()
 
 actor = vtk.vtkActor()
 actor.SetMapper(mapper)
-actor.GetProperty().SetColor(1,1,1)
-actor.GetProperty().SetOpacity(.6)
+actor.GetProperty().SetColor(1,0.547237,0.319073)
+actor.GetProperty().SetOpacity(.3)
 
 #create render window and interactor 
 ren = vtk.vtkRenderer()
