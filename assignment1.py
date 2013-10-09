@@ -165,6 +165,20 @@ class VisualizationApp:
 		self.renWin.Render()
 		self.iren.Start()
 
+	def displayPrompt():
+		print "############## Basic Visualization Application #######################"
+		print
+		print "Directions: Select one of the following options:"
+		print
+		print "1 - Display the Data in 3D (No visualization technique)"
+		print "2 - Create an isosurface with a user specified isovalue, color, and opacity"
+		print "3 - Create a user defined cutting plane by enter x,y and z coordinates"
+		print "q - To quit"
+		print "Author: Kevin Kenyon"
+		print "#####################################################################"
+
+	def askUserInput():
+		return input_raw("Select a number or q: ")
 
 
 def main():
@@ -184,7 +198,7 @@ def main():
 	parser.add_argument('-b','--blue', help="rgb value for isosurface", default=1)
 	parser.add_argument('-g','--green', help="rgb value for isosurface", default=1)
 	parser.add_argument('-o','--opacity', help="opacity value for isosurface", default=1.0)
-
+	parser.add_argument('-p','--prompt', help="Run the prompt version to do multiple runs", action="store_true") 
 	args = parser.parse_args()
 
 	print args
@@ -194,8 +208,6 @@ def main():
 	##Test if reader is functioning
 	app.getFileHeader()
 
-	#A.) User can just display the data
-	#For now -d
 	if(args.data):
 		app.displayData()
 	elif args.iso:
@@ -213,6 +225,11 @@ def main():
 	elif args.cut:
 		normal = {'x': args.x_cut, 'y': args.y_cut, 'z': args.z_cut}
 		app.createCuttingPlane(normal,0)	
+	elif args.prompt:
+		app.displayPrompt()
+		app.askUserInput()
+		
+	
 		
 if __name__ == "__main__":
 	main()
