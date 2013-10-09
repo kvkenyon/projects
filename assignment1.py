@@ -165,7 +165,7 @@ class VisualizationApp:
 		self.renWin.Render()
 		self.iren.Start()
 
-	def displayPrompt():
+	def displayPrompt(self):
 		print "############## Basic Visualization Application #######################"
 		print
 		print "Directions: Select one of the following options:"
@@ -177,8 +177,19 @@ class VisualizationApp:
 		print "Author: Kevin Kenyon"
 		print "#####################################################################"
 
-	def askUserInput():
-		return input_raw("Select a number or q: ")
+	def askUserInput(self):
+		return raw_input("Select a number or q: ")
+
+	def quitTheApp(self, input):
+		return input == 'q' or input == 'Q'
+
+	
+	def closeWindow(self):
+		renWin = self.iren.GetRenderWindow()
+		renWin.Finalize()
+		self.iren.TerminateApp()
+		del renWin, self.iren
+
 
 
 def main():
@@ -227,8 +238,24 @@ def main():
 		app.createCuttingPlane(normal,0)	
 	elif args.prompt:
 		app.displayPrompt()
-		app.askUserInput()
-		
+		input = app.askUserInput()
+		while(not app.quitTheApp(input)):
+			if input == '1': #Just display the data and show the prompt again
+				app.displayData()
+				app.displayPrompt()
+				input = app.askUserInput()	
+				app.closeWindow()
+			elif input == '2': #Create a new prompt for isosurfaces and run isosurface code
+				app.displayPrompt()
+				input = app.askUserInput()
+				app.closeWindow()
+			elif input == '3': #Create a cutting plane prompt and run cutting plane code
+				app.displayPrompt()
+				input = app.askUserInput()
+				app.closeWindow()
+
+		print "Thank you for playing! :)"
+		return
 	
 		
 if __name__ == "__main__":
