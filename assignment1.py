@@ -115,8 +115,46 @@ class VisualizationApp:
 		return cutter
 
 	def volumeRender(self):
-		print "in app"
-		return 0
+		#Create transfer mapping scalar value to opacity
+		opacityTransferFunction = vtk.vtkPiecewiseFunction()
+		opacityTransferFunction.AddPoint(1, 0.0)
+		opacityTransferFunction.AddPoint(100, 0.1)
+		opacityTransferFunction.AddPoint(255,1.0)
+
+		colorTransferFunction = vtk.vtkColorTransferFunction()
+		colorTransferFunction.AddRGBPoint(0.0,0.0,0.0,0.0)	
+		colorTransferFunction.AddRGBPoint(64.0,1.0,0.0,0.0)	
+		colorTransferFunction.AddRGBPoint(128.0,0.0,0.0,1.0)	
+		colorTransferFunction.AddRGBPoint(192.0,0.0,1.0,0.0)	
+		colorTransferFunction.AddRGBPoint(255.0,0.0,0.2,0.0)	
+
+		volumeProperty = vtk.vtkVolumeProperty()
+		volumeProperty.SetColor(colorTransferFunction)
+		volumeProperty.SetScalarOpacity(opacityTransferFunction)
+		volumeProperty.ShadeOn()
+		volumeProperty.SetInterpolationTypeToLinear()
+
+		compositeFunction = vtk.vtkVolumeRayCastCompositeFunction()
+		volumeMapper = vtk.vtkFixedPointVolumeRayCastMapper()
+		volumeMapper.SetInputConnection(self.reader.GetOutputPort())
+
+		volume = vtk.vtkVolume()
+		volume.SetMapper(volumeMapper)
+		volume.SetProperty(volumeProperty)
+
+		ren = vtk.vtkRenderer()
+		renWin = vtk.vtkRenderWindow()
+		renWin.AddRenderer(ren)
+		iren = vtk.vtkRenderWindowInteractor()
+		iren.SetRenderWindow(renWin)
+		ren.AddVolume(volume)
+		ren.SetBackground(1,1,1)
+		renWin.SetSize(600,600)
+		renWin.Render()
+
+		iren.Initialize()
+		renWin.Render()
+		iren.Start() 
 
 	def createMapper(self,turnOffScalarVisibilty=True):
 		self.mapper = vtk.vtkPolyDataMapper()
@@ -244,7 +282,7 @@ def main():
 	elif args.cut:
 		normal = {'x': args.x_cut, 'y': args.y_cut, 'z': args.z_cut}
 		app.createCuttingPlane(normal,0)	
-	if args.volume:
+	elif args.volume:
 		app.volumeRender()
 	elif args.prompt:
 		app.displayPrompt()
