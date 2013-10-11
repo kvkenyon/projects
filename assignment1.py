@@ -114,6 +114,10 @@ class VisualizationApp:
 		cutter.Update()
 		return cutter
 
+	def volumeRender(self):
+		print "in app"
+		return 0
+
 	def createMapper(self,turnOffScalarVisibilty=True):
 		self.mapper = vtk.vtkPolyDataMapper()
 		self.mapper.SetInputConnection(self.outputPortForMapper)
@@ -173,6 +177,7 @@ class VisualizationApp:
 		print "1 - Display the Data in 3D (No visualization technique)"
 		print "2 - Create an isosurface with a user specified isovalue, color, and opacity"
 		print "3 - Create a user defined cutting plane by enter x,y and z coordinates"
+		print "4 - Volume render a given file."
 		print "q - To quit"
 		print "Author: Kevin Kenyon"
 		print "#####################################################################"
@@ -210,7 +215,10 @@ def main():
 	parser.add_argument('-g','--green', help="rgb value for isosurface", default=1)
 	parser.add_argument('-o','--opacity', help="opacity value for isosurface", default=1.0)
 	parser.add_argument('-p','--prompt', help="Run the prompt version to do multiple runs", action="store_true") 
+	#Volume rendering support
+	parser.add_argument('-volume', '--volume', help="Create volume render", action="store_true")
 	args = parser.parse_args()
+
 
 	print args
 	#Create the app
@@ -236,6 +244,8 @@ def main():
 	elif args.cut:
 		normal = {'x': args.x_cut, 'y': args.y_cut, 'z': args.z_cut}
 		app.createCuttingPlane(normal,0)	
+	if args.volume:
+		app.volumeRender()
 	elif args.prompt:
 		app.displayPrompt()
 		input = app.askUserInput()
@@ -253,8 +263,12 @@ def main():
 				app.displayPrompt()
 				input = app.askUserInput()
 				app.closeWindow()
+			elif input == '4': #Volume rendering
+				app.displayPrompt()
+				input = app.askUserInput()
+				app.closeWindow()
 
-		print "Thank you for playing! :)"
+		print "Thank you for playing"
 		return
 	
 		
