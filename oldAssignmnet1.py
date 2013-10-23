@@ -3,7 +3,9 @@ import sys
 import vtk
 import Tkinter
 from vtk.tk.vtkTkRenderWindowInteractor import vtkTkRenderWindowInteractor
+import argparse
 	
+
 class IsoSurfaceConfiguration:
 	def __init__(self, isoValue):
 		self.isoValue = isoValue;
@@ -52,9 +54,8 @@ class IsoSurfaceConfiguration:
 	
 
 class VisualizationApp:
-	def __init__(self, fileName, root):
+	def __init__(self, fileName):
 		self.reader = self.createReader(fileName)
-		self.root = root
 		
 	def createReader(self,fileName):
 		#I dont care about different types of readers for now
@@ -145,15 +146,16 @@ class VisualizationApp:
 		ren = vtk.vtkRenderer()
 		renWin = vtk.vtkRenderWindow()
 		renWin.AddRenderer(ren)
-
-		iren = vtkTkRenderWindowInteractor(self.root, rw=renWin, width=640, height=480)
-		iren.Initialize()
-
+		iren = vtk.vtkRenderWindowInteractor()
+		iren.SetRenderWindow(renWin)
 		ren.AddVolume(volume)
 		ren.SetBackground(1,1,1)
-
+		renWin.SetSize(600,600)
 		renWin.Render()
 
+		iren.Initialize()
+		renWin.Render()
+		iren.Start() 
 
 	def createMapper(self,turnOffScalarVisibilty=True):
 		self.mapper = vtk.vtkPolyDataMapper()
@@ -184,11 +186,12 @@ class VisualizationApp:
 		self.ren = vtk.vtkRenderer()
 		self.renWin = vtk.vtkRenderWindow()
 		self.renWin.AddRenderer(self.ren)
+		self.renWin.SetSize(600,400)
 		self.renWin.PolygonSmoothingOn()
 	
 	def setupInteractor(self,changeStyle=True):
 		#Setup interactor
-		self.iren = vtk.vtkTkRenderWindowInteractor()
+		self.iren = vtk.vtkRenderWindowInteractor()
 		self.iren.SetRenderWindow(self.renWin)
 		if changeStyle:
 				style = vtk.vtkInteractorStyleTrackballCamera()
@@ -205,16 +208,107 @@ class VisualizationApp:
 		self.renWin.Render()
 		self.iren.Start()
 
+	def displayPrompt(self):
+		print "############## Basic Visualization Application #######################"
+		print
+		print "Directions: Select one of the following options:"
+		print
+		print "1 - Display the Data in 3D (No visualization technique)"
+		print "2 - Create an isosurface with a user specified isovalue, color, and opacity"
+		print "3 - Create a user defined cutting plane by enter x,y and z coordinates"
+		print "4 - Volume render a given file."
+		print "q - To quit"
+		print "Author: Kevin Kenyon"
+		print "#####################################################################"
+
+	def askUserInput(self):
+		return raw_input("Select a number or q: ")
+
+	def quitTheApp(self, input):
+		return input == 'q' or input == 'Q'
+
+	
+	def closeWindow(self):
+		renWin = self.iren.GetRenderWindow()
+		renWin.Finalize()
+		self.iren.TerminateApp()
+		del renWin, self.iren
+
+
+
 def main():
-	root = Tkinter.Tk()
-	root.title=("Kevin Kenyon Vis App")
-	frame = Tkinter.Frame(root)
-	frame.pack(fill=Tkinter.BOTH, expand=1, side=Tkinter.TOP)
+	#We depend on user input:
+	#Parsing stuff
+	
+	parser = argparse.ArgumentParser()
+	parser.add_argument ('-f', '--file', help="Need to give a valid file.", required="True")
+	parser.add_argument('-d', '--data', help="Display the data without visualization technique.", action="store_true")
+	parser.add_argument('-c', '--cut', help="a cutting plane of the data please", action="store_true")
+	parser.add_argument('-x', '--x_cut', help="x-dimension of the cutting plane", default=0)
+	parser.add_argument('-y', '--y_cut', help="y-dimension of the cutting plane", default=0)
+	parser.add_argument('-z', '--z_cut', help="z-dimension of the cutting plane", default=0)
+	parser.add_argument('-i', '--iso', help="Create isosurface", action="store_true")
+	parser.add_argument('-v', '--isovalue', help="Add the isovalue for the surface", default=100)
+	parser.add_argument('-r','--red', help="rgb value for isosurface", default=1)
+	parser.add_argument('-b','--blue', help="rgb value for isosurface", default=1)
+	parser.add_argument('-g','--green', help="rgb value for isosurface", default=1)
+	parser.add_argument('-o','--opacity', help="opacity value for isosurface", default=1.0)
+	parser.add_argument('-p','--prompt', help="Run the prompt version to do multiple runs", action="store_true") 
+	#Volume rendering support
+	parser.add_argument('-volume', '--volume', help="Create volume render", action="store_true")
+	args = parser.parse_args()
 
-	app = VisualizationApp("heart.vtk", root)
-	app.volumeRender()
 
-	root.mainLoop()
+	print args
+	#Create the app
+	fileName = args.file 
+	app = VisualizationApp(fileName)
+	##Test if reader is functioning
+	app.getFileHeader()
+
+	if(args.data):
+		app.displayData()
+	elif args.iso:
+		isoValue = float(args.isovalue)
+		print "Type: " + str(type(isoValue))
+		print "Isovalue: " + str(isoValue)
+		#Create a configuration
+		print "Red->" +str(args.red) + "Green->" + str(args.green) + "Blue->" + str(args.blue) + "Opacity->"+str(args.opacity)
+		configuration = IsoSurfaceConfiguration(isoValue)
+		configuration.setColorR(args.red)
+		configuration.setColorG(args.green)
+		configuration.setColorB(args.blue)
+		configuration.setOpacity(args.opacity)
+		app.createIsoSurface(configuration)
+	elif args.cut:
+		normal = {'x': args.x_cut, 'y': args.y_cut, 'z': args.z_cut}
+		app.createCuttingPlane(normal,0)	
+	elif args.volume:
+		app.volumeRender()
+	elif args.prompt:
+		app.displayPrompt()
+		input = app.askUserInput()
+		while(not app.quitTheApp(input)):
+			if input == '1': #Just display the data and show the prompt again
+				app.displayData()
+				app.displayPrompt()
+				input = app.askUserInput()	
+				app.closeWindow()
+			elif input == '2': #Create a new prompt for isosurfaces and run isosurface code
+				app.displayPrompt()
+				input = app.askUserInput()
+				app.closeWindow()
+			elif input == '3': #Create a cutting plane prompt and run cutting plane code
+				app.displayPrompt()
+				input = app.askUserInput()
+				app.closeWindow()
+			elif input == '4': #Volume rendering
+				app.displayPrompt()
+				input = app.askUserInput()
+				app.closeWindow()
+
+		print "Thank you for playing"
+		return
 	
 		
 if __name__ == "__main__":
