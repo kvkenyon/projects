@@ -35,6 +35,8 @@ cam.Elevation(-40)
 
 
 ## Generate the GUI
+#Some of the GUI code was modified by using the GUI code in gregj folder of Tk vtk examples
+#PuzzleGame.py
 root = Tkinter.Tk()
 root.withdraw()
 
@@ -132,12 +134,12 @@ f1.pack(side="top", anchor="n", expand=1, fill="both")
 f2.pack(side="bottom", anchor="s", expand="t", fill="x")
 f3.pack(side="bottom", anchor="s", expand="t", fill="x")
 
-# Create the Tk render widget, and bind the events
+# Create the Tk render widget
 rw = vtkTkRenderWindowInteractor(f1, width=400, height=400, rw=renWin)
 rw.pack(expand="t", fill="both")
 
 
-# Display some information
+# Declare the variables we need for iso surfaces 
 
 
 isoValue = Tkinter.DoubleVar()
